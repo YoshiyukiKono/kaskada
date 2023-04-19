@@ -1,0 +1,210 @@
+= Installing Kaskada in Kubernetes with Helm
+
+xref:url:https://helm.sh/[Helm] charts allows you to configure, install, and upgrade Kaskada within a Kubernetes cluster.
+
+== Prerequisites
+
+* Helm 3 or above. See xref:url:https://helm.sh/docs/intro/install/[Installing Helm].
+* A running Kubernetes cluster
+
+== Kaskada-Canary Helm Chart
+
+The xref:url:https://github.com/kaskada-ai/kaskada/tree/main/charts/kaskada-canary[Kaskada Canary Helm Chart] installs a persistant version of the kaskada service in the simplest configuration possible. 
+
+In this setup, the kaskada service runs as two containers in a single pod, and persists its database as a file on attached storage. It also requires access to an object store for storing data and query results.
+
+This chart is primarily intended for initial testing and should not be used in production scenarios.
+
+=== Install the Kaskada Canary Helm Chart
+
+1. Add Kaskada's Helm repository to your local Helm installation:
+
+[source,shell]
+----
+helm repo add kaskada https://kaskada-ai.github.io/kaskada/charts
+----
+
+1. Update the chart repository:
+[source,shell]
+----
+helm repo update
+----
+
+1. Create the configuration file `values.yaml`:
+[source,yaml]
+----
+# values.yaml
+
+----
+
+1. Deploy the chart:
+
+  * Deploy with the defined confgiuration:
+    
+[source,shell]
+----
+helm install kaskada kaskada/kaskada-canary -f values.yaml
+----
+
+  * Deploy in a custom Kubernetes cluster namespace:
+    
+[source,shell]
+----
+helm install kaskada kaskada/kaskada-canary -f values.yaml --namespace <namespace>
+----
+
+.Installing Kaskada using pip
+[,shell]
+----
+pip install kaskada 
+----
+
+[NOTE]
+.Pip and pip3 
+====
+Depending on you Python installation and configuration you may have `pip3` instead of `pip` available in your terminal. 
+If you do have `pip3` replace `pip` with `pip3` in your command, i.e., `pip3 install kaskada`
+====
+
+Kaskada is now installed. Kaskada can be used locally by creating a local session.
+
+.Creating a local Kaskada session in Python
+[.python]
+----
+from kaskada.api.session import LocalBuilder
+session = LocalBuilder().build()
+----
+
+Creating a local session will download and run the Kaskada service, and configure the client to use the local endpoint.
+
+
+== Using Kaskada with IPython (Jupyter)
+
+IPython is an interactive Python runtime used by Jupyter and other
+notebooks to evaluate Python code blocks. IPython supports "magic
+extensions" for customizing how code blocks are interpreted. Kaskada
+provides a magic extension that simplifies querying Kaskada. 
+
+Kaskada's python library includes notebook customizations that allow us to write queries in the Fenl language but also receive and render the results of our queries in our notebooks. 
+We need to enable these customizations first before we can use them. 
+
+.Enable fenlmagic in this notebook 
+[,python]
+----
+%load_ext fenlmagic
+----
+
+This will load the extension into the IPython context. You can verify
+the install worked by initializing the extension:
+
+[source,ipython]
+----
+%%fenl?
+----
+
+[source,bash]
+----
+  %fenl [--as-view AS_VIEW] [--data-token DATA_TOKEN] [--debug DEBUG]
+            [--output OUTPUT] [--preview-rows PREVIEW_ROWS]
+            [--result-behavior RESULT_BEHAVIOR] [--var VAR]
+
+fenl query magic
+
+optional arguments:
+  --as-view AS_VIEW     adds the body as a view with the given name to all
+                        subsequent fenl queries.
+  --data-token DATA_TOKEN
+                        A data token to run queries against. Enables
+                        repeatable queries.
+  --debug DEBUG         Shows debugging information
+  --output OUTPUT       Output format for the query results. One of "df"
+                        (default), "json", "parquet" or "redis-bulk". "redis-
+                        bulk" implies --result-behavior "final-results"
+  --preview-rows PREVIEW_ROWS
+                        Produces a preview of the data with at least this many
+                        rows.
+  --result-behavior RESULT_BEHAVIOR
+                        Determines which results are returned. Either "all-
+                        results" (default), or "final-results" which returns
+                        only the final values for each entity.
+  --var VAR             Assigns the QueryResponse to a local variable with the given
+                        name. The QueryResponse contains result_url, query and dataframe. 
+----
+
+== Using Kaskada with the command line (CLI)
+
+To use Kaskada on the command line, you'll need to install three components:
+
+* The Kaskada command-line executable
+* The Kaskada manager, which serves the Kaskada API
+* The Kaskada engine, which executes queries
+
+Each of these are available as pre-compiled binaries in the xref:url:https://github.com/kaskada-ai/kaskada/releases[Releases] section of Kaskada's Github repository.
+This example assumes you have installed `curl`.
+
+[source,shell]
+----
+VERSION=0.4.1
+ARCH=$(uname -m | awk '{print tolower($0)}')
+OS=$(uname -s | awk '{print tolower($0)}')
+
+curl -L "https://github.com/kaskada-ai/kaskada/releases/download/engine%40v$VERSION/kaskada-cli-$OS-$ARCH" -o kaskada-cli
+curl -L "https://github.com/kaskada-ai/kaskada/releases/download/engine%40v$VERSION/kaskada-engine-$OS-$ARCH" -o kaskada-engine
+curl -L "https://github.com/kaskada-ai/kaskada/releases/download/engine%40v$VERSION/kaskada-manager-$OS-$ARCH" -o kaskada-manager
+
+chmod +x kaskada-*
+----
+
+[TIP]
+.Authorizing applications on OSX
+====
+If you're using OSX, you may need to unblock the applications.
+OSX prevents applications you download from running as a security feature.
+You can remove the block placed on the file when it was downloaded with the following command:
+
+[source,shell]
+----
+xattr -dr com.apple.quarantine <path to file>
+----
+====
+
+You should now be able to run all three components.
+To verify they're installed correctly and executable, try running the following command:
+
+[source,shell]
+----
+./kaskada-cli -h
+----
+
+You should see output similar to the following:
+
+[source,shell]
+----
+A CLI tool for interacting with the Kaskada API
+
+Usage:
+  cli [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  load        A set of commands for loading data into kaskada
+  query       A set of commands for running queries on kaskada
+  sync        A set of commands for interacting with kaskada resources as code
+
+Flags:
+      --config string               config file (default is $HOME/.cli.yaml)
+  -d, --debug                       get debug log output
+  -h, --help                        help for cli
+      --kaskada-api-server string   Kaskada API Server
+      --kaskada-client-id string    Kaskada Client ID
+      --use-tls                     Use TLS when connecting to the Kaskada API (default true)
+----
+
+You can start a local instance of the Kaskada service by running the manager and engine:
+
+[source,shell]
+----
+./kaskada-manager 2>&1 > manager.log 2>&1 &
+./kaskada-engine serve > engine.log 2>&1 &
+----
