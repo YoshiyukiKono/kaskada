@@ -5,5 +5,12 @@ package kaskada.kaskada.v1alpha;
 import "google/protobuf/descriptor.proto";
 
 extend google.protobuf.FieldOptions {
+  // set to true if the field is sensitive
   bool sensitive = 50000;
+
+  // contains the default value for the string field
+  string default_string_value = 50001;
+
+  // contains the list of possible values for the string field
+  repeated string possible_string_values = 50002;
 }

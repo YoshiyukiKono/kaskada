@@ -5,38 +5,29 @@ import "kaskada/kaskada/v1alpha/options.proto";
 
 message PulsarConfig {
   // The Pulsar protocol URL for the cluster.
-  //
-  // Defaults to "pulsar://127.0.0.1:6650".
-  string broker_service_url = 1;
+  optional string broker_service_url = 1 [(kaskada.v1alpha.default_string_value) = "pulsar://127.0.0.1:6650"];
 
   // The Pulsar admin REST URL for the cluster.
-  //
-  // Defaults to http://127.0.0.1:8080
-  string admin_service_url = 2;
+  optional string admin_service_url = 2 [(kaskada.v1alpha.default_string_value) = "http://127.0.0.1:8080"];
 
   // Authentication plugin to use.
-  // e.g. "org.apache.pulsar.client.impl.auth.AuthenticationToken"
-  string auth_plugin = 3;
+  optional string auth_plugin = 3 [(kaskada.v1alpha.default_string_value) = "org.apache.pulsar.client.impl.auth.AuthenticationToken"];
 
   // Authentication parameters.
   // e.g. "token:xxx"
   string auth_params = 4 [(kaskada.v1alpha.sensitive) = true];
 
   // The topic tenant within the instance.
-  //
-  // Defaults to "public".
-  string tenant = 5;
+  optional string tenant = 5 [(kaskada.v1alpha.default_string_value) = "public"];
 
   // The administrative unit of topics, which acts as a grouping
   // mechanism for related topics.
-  //
-  // Defaults to "default".
-  string namespace = 6;
+  optional string namespace = 6 [(kaskada.v1alpha.default_string_value) = "default"];
 
   // The final part of the topic url.
   //
   // Defaults to a randomly generated uuid.
-  string topic_name = 7;
+  optional string topic_name = 7;
 }
 
 // Configuration for a single source of data from a pulsar topic.
